@@ -1,4 +1,4 @@
-FROM golang:1.24-bookworm AS builder
+FROM golang:1.26-bookworm AS builder
 
 WORKDIR /app
 
@@ -9,11 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN git clone --depth=1 https://github.com/AminMGMT/BackPack.git .
 
-ENV GOPROXY=https://proxy.golang.org,https://mirror-go.runflare.com,https://goproxy.cn,direct
-ENV GOSUMDB=off
-ENV GOTOOLCHAIN=local
-
-RUN go mod download
+RUN go mod tidy
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -trimpath \
@@ -24,6 +20,8 @@ FROM debian:bookworm-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
+    iproute2 \
+    iptables \
     && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /etc/backpack /root/BackPack/backups
